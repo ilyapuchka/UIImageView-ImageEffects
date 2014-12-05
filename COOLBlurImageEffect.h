@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Ilya Puchka. All rights reserved.
 //
 
-#import "ARImageEffect.h"
+#import "COOLImageEffect.h"
 
 @interface COOLBlurImageEffect : NSObject <COOLImageEffect>
 

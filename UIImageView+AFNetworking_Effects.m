@@ -8,18 +8,18 @@
 
 #import "UIImageView+AFNetworking_Effects.h"
 
-@interface ARDecoratedImageCache: NSCache
+@interface COOLDecoratedImageCache: NSCache
 
 - (UIImage *)cachedImageForRequest:(NSURLRequest *)request
-                            effect:(id<ARImageEffect>)effect;
+                            effect:(id<COOLImageEffect>)effect;
 
 - (void)cacheImage:(UIImage *)image
         forRequest:(NSURLRequest *)request
-            effect:(id<ARImageEffect>)effect;
+            effect:(id<COOLImageEffect>)effect;
 
 @end
 
-static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRequest *request, id<ARImageEffect> effect) {
+static inline NSString * COOLDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRequest *request, id<COOLImageEffect> effect) {
     NSString *key = [[request URL] absoluteString];
     if (effect) {
         key = [key stringByAppendingString:[NSString stringWithFormat:@"%lu", (unsigned long)[effect hash]]];
@@ -27,10 +27,10 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
     return key;
 }
 
-@implementation ARDecoratedImageCache
+@implementation COOLDecoratedImageCache
 
 - (UIImage *)cachedImageForRequest:(NSURLRequest *)request
-                            effect:(id<ARImageEffect>)effect {
+                            effect:(id<COOLImageEffect>)effect {
     switch ([request cachePolicy]) {
         case NSURLRequestReloadIgnoringCacheData:
         case NSURLRequestReloadIgnoringLocalAndRemoteCacheData:
@@ -39,15 +39,15 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
             break;
     }
     
-    return [self objectForKey:ARDecoratedImageCacheKeyFromURLRequestAndEffect(request, effect)];
+    return [self objectForKey:COOLDecoratedImageCacheKeyFromURLRequestAndEffect(request, effect)];
 }
 
 - (void)cacheImage:(UIImage *)image
         forRequest:(NSURLRequest *)request
-            effect:(id<ARImageEffect>)effect
+            effect:(id<COOLImageEffect>)effect
 {
     if (image && request) {
-        [self setObject:image forKey:ARDecoratedImageCacheKeyFromURLRequestAndEffect(request, effect)];
+        [self setObject:image forKey:COOLDecoratedImageCacheKeyFromURLRequestAndEffect(request, effect)];
     }
 }
 
@@ -55,12 +55,12 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
 
 @implementation UIImageView (AFNetworking_Effects)
 
-+ (ARDecoratedImageCache *)sharedDecoratedImageCache
++ (COOLDecoratedImageCache *)sharedDecoratedImageCache
 {
-    static ARDecoratedImageCache *_af_defaultImageCache = nil;
+    static COOLDecoratedImageCache *_af_defaultImageCache = nil;
     static dispatch_once_t oncePredicate;
     dispatch_once(&oncePredicate, ^{
-        _af_defaultImageCache = [[ARDecoratedImageCache alloc] init];
+        _af_defaultImageCache = [[COOLDecoratedImageCache alloc] init];
         
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * __unused notification) {
             [_af_defaultImageCache removeAllObjects];
@@ -69,14 +69,14 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
     return _af_defaultImageCache;
 };
 
-+ (dispatch_queue_t)ar_sharedImageDecorationQueue {
-    static dispatch_queue_t _ar_sharedImageDecrationQueue = nil;
++ (dispatch_queue_t)cool_sharedImageDecorationQueue {
+    static dispatch_queue_t _cool_sharedImageDecrationQueue = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _ar_sharedImageDecrationQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+        _cool_sharedImageDecrationQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     });
     
-    return _ar_sharedImageDecrationQueue;
+    return _cool_sharedImageDecrationQueue;
 }
 
 - (NSURLRequest *)imageRequestWithURL:(NSURL *)url
@@ -92,22 +92,22 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
     }
 }
 
-- (void)setImageWithURL:(NSURL *)url effect:(id<ARImageEffect>)effect
+- (void)setImageWithURL:(NSURL *)url effect:(id<COOLImageEffect>)effect
 {
     [self setImageWithURL:url placeholderImage:nil effect:effect];
 }
 
-- (void)setImageWithURL:(NSURL *)url placeholderImage:(UIImage *)placeholderImage effect:(id<ARImageEffect>)effect
+- (void)setImageWithURL:(NSURL *)url placeholderImage:(UIImage *)placeholderImage effect:(id<COOLImageEffect>)effect
 {
     [self setImageWithURLRequest:[self imageRequestWithURL:url] placeholderImage:placeholderImage effect:effect animated:NO success:nil failure:nil];
 }
 
-- (void)setImageWithURL:(NSURL *)url placeholderImage:(UIImage *)placeholderImage effect:(id<ARImageEffect>)effect animated:(BOOL)animated
+- (void)setImageWithURL:(NSURL *)url placeholderImage:(UIImage *)placeholderImage effect:(id<COOLImageEffect>)effect animated:(BOOL)animated
 {
     [self setImageWithURLRequest:[self imageRequestWithURL:url] placeholderImage:placeholderImage effect:effect animated:animated success:nil failure:nil];
 }
 
-- (void)setImageWithURLRequest:(NSURLRequest *)urlRequest placeholderImage:(UIImage *)placeholderImage effect:(id<ARImageEffect>)effect animated:(BOOL)animated success:(void (^)(NSURLRequest *, NSHTTPURLResponse *, UIImage *))success failure:(void (^)(NSURLRequest *, NSHTTPURLResponse *, NSError *))failure
+- (void)setImageWithURLRequest:(NSURLRequest *)urlRequest placeholderImage:(UIImage *)placeholderImage effect:(id<COOLImageEffect>)effect animated:(BOOL)animated success:(void (^)(NSURLRequest *, NSHTTPURLResponse *, UIImage *))success failure:(void (^)(NSURLRequest *, NSHTTPURLResponse *, NSError *))failure
 {
     if (effect == nil) {
         [self setImageWithURLRequest:urlRequest placeholderImage:placeholderImage success:success failure:failure];
@@ -138,7 +138,7 @@ static inline NSString * ARDecoratedImageCacheKeyFromURLRequestAndEffect(NSURLRe
             __strong __typeof(weakSelf)strongSelf = weakSelf;
 
             if (effect) {
-                dispatch_async([[strongSelf class] ar_sharedImageDecorationQueue], ^{
+                dispatch_async([[strongSelf class] cool_sharedImageDecorationQueue], ^{
                     UIImage *decoretedImage = effect?[effect applyToImage:image]: image;
                     dispatch_async(dispatch_get_main_queue(), ^{
                         if (success) {
